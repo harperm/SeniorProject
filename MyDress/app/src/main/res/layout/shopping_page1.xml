@@ -1,0 +1,49 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:textAlignment="center"
+    android:weightSum="1">
+
+
+    <ImageButton
+        android:id="@+id/homeButton"
+        android:layout_width="30dp"
+        android:layout_height="wrap_content"
+        android:onClick="navigateHome"
+        app:srcCompat="@drawable/ic_home_black_24dp" />
+
+    <ImageView
+        android:id="@+id/ae"
+        android:layout_width="93dp"
+        android:layout_height="100dp"
+        android:onClick="aeRedirect"
+        android:src="@mipmap/american_eagle" />
+
+    <ImageView
+        android:id="@+id/gap"
+        android:layout_width="93dp"
+        android:layout_height="100dp"
+        android:onClick="gapRedirect"
+        android:src="@mipmap/gap" />
+
+    <ImageView
+        android:id="@+id/lord"
+        android:layout_width="93dp"
+        android:layout_height="100dp"
+        android:onClick="lordRedirect"
+        android:src="@mipmap/lordandtaylor" />
+
+    <ImageView
+        android:id="@+id/nord"
+        android:layout_width="93dp"
+        android:layout_height="100dp"
+        android:onClick="nordRedirect"
+        android:src="@mipmap/nordstrom" />
+
+
+</LinearLayout>

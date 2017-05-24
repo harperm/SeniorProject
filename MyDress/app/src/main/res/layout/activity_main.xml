@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
@@ -43,6 +44,7 @@
         android:gravity="center"
         android:layout_below="@+id/textView"
         android:padding="20dp"
+        android:onClick="openLaundry"
         />
 
 
@@ -55,6 +57,7 @@
         android:gravity="center"
         android:layout_below="@+id/textView"
         android:padding="20dp"
+        android:onClick="openShopping"
         />
 
 
