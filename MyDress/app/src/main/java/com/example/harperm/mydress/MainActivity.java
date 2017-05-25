@@ -83,4 +83,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(viewIntent);
     }
 
+    public void tjRedirect (View view){
+        Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://www.tjmaxx.com/"));
+        startActivity(viewIntent);
+    }
+
+    public void jcrewRedirect (View view){
+        Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://www.jcrew.com/"));
+        startActivity(viewIntent);
+    }
 }
