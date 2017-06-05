@@ -55,6 +55,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
+    public void navigateLogin (View View){
+        setContentView(R.layout.login_screen);
+    }
+
     public void openCloset(View view) {
         setContentView(R.layout.closet_page1);
     }
@@ -111,12 +115,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void createAccount (View view){
-        //need to implement
+        setContentView(R.layout.create_account);
     }
 
     public void forgotPassword (View view){
-        //need to implement
+        setContentView(R.layout.forgot_password);
     }
+
+
 
 
 
