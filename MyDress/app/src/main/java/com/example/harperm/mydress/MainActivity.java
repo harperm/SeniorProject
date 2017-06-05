@@ -44,11 +44,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.login_screen);
 
         //mTextMessage = (TextView) findViewById(R.id.message);
         //BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         //navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+    }
+
+    public void homepage (View view) {
+        setContentView(R.layout.activity_main);
     }
 
     public void openCloset(View view) {
@@ -97,22 +101,24 @@ public class MainActivity extends AppCompatActivity {
         startActivity(viewIntent);
     }
     static final int REQUEST_IMAGE_CAPTURE = 1;  //We only need it to take one image capture
-    //public void openCamera (View view){
-      //  Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        //if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-          //  startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        //}
+    public void openCamera (View view){
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
         //dispatchTakePictureIntent();
         //galleryAddPic();
-    //}
-
-
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-            imageView.setImageBitmap(photo);
-        }
     }
+
+    public void createAccount (View view){
+        //need to implement
+    }
+
+    public void forgotPassword (View view){
+        //need to implement
+    }
+
+
 
 
 }
