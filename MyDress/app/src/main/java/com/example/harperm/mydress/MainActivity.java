@@ -7,10 +7,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.view.View;
+import java.io.File;
 import android.content.Intent;
-import android.util.Log;
 import android.net.Uri;
-
+import android.provider.MediaStore;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.os.Environment;
+import android.support.v4.content.FileProvider;
 public class MainActivity extends AppCompatActivity {
 
     private TextView mTextMessage;
@@ -40,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         //mTextMessage = (TextView) findViewById(R.id.message);
         //BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
@@ -92,4 +96,23 @@ public class MainActivity extends AppCompatActivity {
         Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://www.jcrew.com/"));
         startActivity(viewIntent);
     }
+    static final int REQUEST_IMAGE_CAPTURE = 1;  //We only need it to take one image capture
+    //public void openCamera (View view){
+      //  Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        //if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+          //  startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        //}
+        //dispatchTakePictureIntent();
+        //galleryAddPic();
+    //}
+
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+            imageView.setImageBitmap(photo);
+        }
+    }
+
+
 }

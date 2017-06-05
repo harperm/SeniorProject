@@ -33,7 +33,7 @@
         android:gravity="center"
         android:layout_below="@+id/textView"
         android:padding="20dp"
-        android:onClick="openCloset"
+        android:onClick="openCamera"
         />
 
 
