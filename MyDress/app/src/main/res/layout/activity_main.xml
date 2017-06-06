@@ -9,7 +9,15 @@
     android:textAlignment="center"
     android:weightSum="1">
 
-
+    <Button
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:text="Sign Out"
+        android:id="@+id/signout"
+        android:gravity="center"
+        android:layout_below="@+id/textView"
+        android:padding="20dp"
+        android:onClick="signOut"/>
     <ImageView
         android:layout_width="239dp"
         android:layout_height="wrap_content"
