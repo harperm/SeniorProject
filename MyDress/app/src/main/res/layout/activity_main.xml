@@ -1,0 +1,64 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:textAlignment="center"
+    android:weightSum="1">
+
+
+    <ImageView
+        android:layout_width="239dp"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/home"
+        android:id="@+id/imageView1"
+        android:layout_weight="0.48" />
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Welcome to myDress!"
+        android:id="@+id/textView"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:text="MY CLOSET"
+        android:id="@+id/closet"
+        android:gravity="center"
+        android:layout_below="@+id/textView"
+        android:padding="20dp"
+        android:onClick="openCloset"/>
+
+    <Button
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:text="LAUNDRY"
+        android:id="@+id/laundry"
+        android:gravity="center"
+        android:layout_below="@+id/textView"
+        android:padding="20dp"
+        android:onClick="openLaundry"
+        />
+
+
+    <Button
+        android:layout_width="220dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="LETS SHOP"
+        android:id="@+id/shop"
+        android:gravity="center"
+        android:layout_below="@+id/textView"
+        android:padding="20dp"
+        android:onClick="openShopping"
+        />
+
+
+
+</LinearLayout>
