@@ -10,10 +10,10 @@
 
     <ImageButton
         android:id="@+id/signOut"
-        android:layout_width="30dp"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:onClick="signOut"
-        app:srcCompat="@android:drawable/ic_delete" />
+        app:srcCompat="@mipmap/logout" />
 
     <LinearLayout
         android:layout_width="fill_parent"
