@@ -21,6 +21,7 @@ import android.support.v4.content.FileProvider;
 import com.google.firebase.auth.FirebaseAuth; //For Firbase Login
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.database.*;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import android.util.Log;
@@ -53,12 +54,19 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public FirebaseUser user;
+
     @Override
     public void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        user = mAuth.getCurrentUser();
         //updateUI(currentUser);
+        if (user != null){
+            Log.v(TAG, "UID: " + user.getUid());
+             setContentView(R.layout.activity_main);
+        }
+
     }
 
     @Override
@@ -108,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.login_screen);
     }
 
-    public void login (View view) {
+    public void login (final View view) {
         String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
 
@@ -119,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+                            user = mAuth.getCurrentUser();
 //                            updateUI(user);
                             Toast.makeText(MainActivity.this, "Authentication Successful.",
                                     Toast.LENGTH_SHORT).show();
@@ -235,7 +243,13 @@ public class MainActivity extends AppCompatActivity {
         mAuth.signOut();
         setContentView(R.layout.login_screen);
     }
+    public void saveData (View view){
+        // Write a message to the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
 
+        myRef.child("users").child(user.getUid()).child("testData").setValue("Hello, World!");
+    }
 
 
 

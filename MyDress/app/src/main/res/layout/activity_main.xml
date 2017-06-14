@@ -9,11 +9,18 @@
 
 
     <ImageButton
+    android:id="@+id/signOut"
+    android:layout_width="30dp"
+    android:layout_height="wrap_content"
+    android:onClick="signOut"
+    app:srcCompat="@android:drawable/ic_delete" />
+
+    <ImageButton
         android:id="@+id/signOut"
-        android:layout_width="30dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="signOut"
-        app:srcCompat="@android:drawable/ic_delete" />
+        android:onClick="saveData"
+        app:srcCompat="@android:drawable/ic_menu_save" />
 
     <LinearLayout
         android:layout_width="fill_parent"
