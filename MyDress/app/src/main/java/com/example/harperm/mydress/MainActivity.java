@@ -231,10 +231,15 @@ public class MainActivity extends AppCompatActivity {
     public void forgotPassword (View view){
         setContentView(R.layout.forgot_password);
     }
-
+    public void signOut (View view){
+        mAuth.signOut();
+        setContentView(R.layout.login_screen);
+    }
 
 
 
 
 
 }
+
+
