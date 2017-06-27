@@ -1,23 +1,19 @@
 package com.example.harperm.mydress;
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.view.View;
-import java.io.File;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import android.os.Environment;
-import android.support.v4.content.FileProvider;
-
+import android.graphics.Bitmap;
 import com.google.firebase.auth.FirebaseAuth; //For Firbase Login
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
@@ -25,6 +21,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import android.util.Log;
 import android.widget.Toast;
+import android.widget.ImageView;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -183,14 +184,70 @@ public class MainActivity extends AppCompatActivity {
         startActivity(viewIntent);
     }
     static final int REQUEST_IMAGE_CAPTURE = 1;  //We only need it to take one image capture
-    public void openCamera (View view){
+    /*public void openCamera (View view){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
         }
         //dispatchTakePictureIntent();
         //galleryAddPic();
+    }*/
+
+    String mCurrentPhotoPath;
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
+
+    static final int REQUEST_TAKE_PHOTO = 1;
+
+    public void openCamera (View view) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+
+                Toast.makeText(MainActivity.this, "Camera Error.",
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
+
+        }
+
+    }
+
+
+
+
+
+
+
+
 
     public void createAccount (View view){
         setContentView(R.layout.create_account);
@@ -240,19 +297,23 @@ public class MainActivity extends AppCompatActivity {
         if(passwordLength < 8){
             Toast.makeText(MainActivity.this, "Password must be at least 8 characters long.",
                     Toast.LENGTH_SHORT).show();
+            ((EditText)findViewById(R.id.password)).setText("");
         }
         else if(numberCheck == false){
                 Toast.makeText(MainActivity.this, "Password must contain at least 1 digit.",
                         Toast.LENGTH_SHORT).show();
+                ((EditText)findViewById(R.id.password)).setText("");
 
         }
         else if(capitalCheck == false){
             Toast.makeText(MainActivity.this, "Password must contain at least 1 capital letter.",
                     Toast.LENGTH_SHORT).show();
+            ((EditText)findViewById(R.id.password)).setText("");
         }
         else if (lowerCheck == false){
             Toast.makeText(MainActivity.this, "Password must contain at least 1 lower case letter.",
                     Toast.LENGTH_SHORT).show();
+            ((EditText)findViewById(R.id.password)).setText("");
         }
 
         else{
@@ -286,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        
+
 
     }
     public void forgotPassword (View view){
