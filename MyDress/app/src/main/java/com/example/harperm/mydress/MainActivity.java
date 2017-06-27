@@ -195,38 +195,99 @@ public class MainActivity extends AppCompatActivity {
     public void createAccount (View view){
         setContentView(R.layout.create_account);
     }
+    public static  boolean numberCheckString(String str){
+        char ch;
+        for(int i=0; i < str.length(); i++){
+            ch = str.charAt(i);
+            if(Character.isDigit(ch)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+    public static boolean capitalCheckString(String str){
+        char ch;
+        for(int i=0; i < str.length(); i++){
+            ch = str.charAt(i);
+            if(Character.isUpperCase(ch)){
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean lowerCheckString(String str){
+        char ch;
+        for(int i=0; i < str.length(); i++){
+            ch = str.charAt(i);
+            if(Character.isLowerCase(ch)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void registerUser(View view) { //(String email, String password) {
         String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
         String passwordConfirm = ((EditText)findViewById(R.id.passwordConfirm)).getText().toString();
 
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
+        int passwordLength = password.length();
+        boolean numberCheck =  numberCheckString(password);
+        boolean capitalCheck = capitalCheckString(password);
+        boolean lowerCheck = lowerCheckString(password);
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "createUserWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+        if(passwordLength < 8){
+            Toast.makeText(MainActivity.this, "Password must be at least 8 characters long.",
+                    Toast.LENGTH_SHORT).show();
+        }
+        else if(numberCheck == false){
+                Toast.makeText(MainActivity.this, "Password must contain at least 1 digit.",
+                        Toast.LENGTH_SHORT).show();
+
+        }
+        else if(capitalCheck == false){
+            Toast.makeText(MainActivity.this, "Password must contain at least 1 capital letter.",
+                    Toast.LENGTH_SHORT).show();
+        }
+        else if (lowerCheck == false){
+            Toast.makeText(MainActivity.this, "Password must contain at least 1 lower case letter.",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        else{
+            mAuth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
+
+                            // If sign in fails, display a message to the user. If sign in succeeds
+                            // the auth state listener will be notified and logic to handle the
+                            // signed in user can be handled in the listener.
+                            if (task.isSuccessful()) {
+                                // Sign in success, update UI with the signed-in user's information
+                                Log.d(TAG, "createUserWithEmail:success");
+                                FirebaseUser user = mAuth.getCurrentUser();
 //                            updateUI(user);
-                            Toast.makeText(MainActivity.this, "Authentication Success.",
-                                  Toast.LENGTH_SHORT).show();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(MainActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Authentication Success.",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                // If sign in fails, display a message to the user.
+                                Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                                Toast.makeText(MainActivity.this, "Authentication failed.",
+                                        Toast.LENGTH_SHORT).show();
 //                            updateUI(null);
-                        }
+                            }
 
-                        // ...
-                    }
-                });
+                            // ...
+                        }
+                    });
+
+        }
+
+        
+
     }
     public void forgotPassword (View view){
         setContentView(R.layout.forgot_password);
