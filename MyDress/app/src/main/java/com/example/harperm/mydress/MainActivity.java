@@ -1,6 +1,7 @@
 package com.example.harperm.mydress;
 
 import android.os.Bundle;
+import java.util.List;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -14,6 +15,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import com.google.firebase.auth.FirebaseAuth; //For Firbase Login
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
@@ -25,7 +27,10 @@ import android.widget.ImageView;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -96,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_screen);
 
-        //mTextMessage = (TextView) findViewById(R.id.message);
+         //mTextMessage = (TextView) findViewById(R.id.message);
         //BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         //navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
@@ -183,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
         Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://www.jcrew.com/"));
         startActivity(viewIntent);
     }
-    static final int REQUEST_IMAGE_CAPTURE = 1;  //We only need it to take one image capture
+     //We only need it to take one image capture
     /*public void openCamera (View view){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -211,17 +216,27 @@ public class MainActivity extends AppCompatActivity {
         return image;
     }
 
+
+
     static final int REQUEST_TAKE_PHOTO = 1;
 
+    public List<File> photoFileList = new ArrayList<File>();
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
+    File photoFile = null;
     public void openCamera (View view) {
+
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
 
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
+
             try {
                 photoFile = createImageFile();
+                photoFileList.add(photoFile);
+                Toast.makeText(getApplicationContext(), String.valueOf(photoFile), Toast.LENGTH_LONG).show();
             } catch (IOException ex) {
 
                 Toast.makeText(MainActivity.this, "Camera Error.",
@@ -235,18 +250,42 @@ public class MainActivity extends AppCompatActivity {
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+
             }
+
+            Toast.makeText(getApplicationContext(), String.valueOf(photoFileList), Toast.LENGTH_LONG).show();
 
         }
 
     }
 
 
+    public void viewItems(View view) {
+        setContentView(R.layout.closet_page2);
+        if(photoFile != null) {
+            ImageView imageView = (ImageView) findViewById(R.id.photo1);
+            File pathToPicture = photoFileList.get(0);
+            imageView.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+        }
+        /*if(photoFile!= null) {
+            Bitmap myBitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
+            ImageView myImage = (ImageView) findViewById(R.id.photo1);
+            myImage.setImageBitmap(myBitmap);
+        }*/
 
 
+    }
 
-
-
+    //@Override
+   /* protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //setContentView(R.layout.closet_page2);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            ImageView mImageView = (ImageView) findViewById(R.id.photo1);
+            mImageView.setImageBitmap(imageBitmap);
+        }
+    }*/
 
 
     public void createAccount (View view){

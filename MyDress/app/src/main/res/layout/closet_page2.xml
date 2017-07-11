@@ -1,0 +1,42 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+
+    <ImageButton
+        android:id="@+id/signOut"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:onClick="signOut"
+        app:srcCompat="@mipmap/logout" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:weightSum="1">
+
+
+        <ImageButton
+            android:id="@+id/homeButton"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:onClick="navigateHome"
+            app:srcCompat="@drawable/ic_home_black_24dp" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/photo1"/>
+
+
+    </LinearLayout>
+
+</LinearLayout>
