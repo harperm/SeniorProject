@@ -1,14 +1,20 @@
 package com.example.harperm.mydress;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import java.util.List;
 import android.os.Environment;
+import org.json.*;
+import com.loopj.android.http.*;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.view.View;
 import android.content.Intent;
@@ -188,15 +194,6 @@ public class MainActivity extends AppCompatActivity {
         Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://www.jcrew.com/"));
         startActivity(viewIntent);
     }
-     //We only need it to take one image capture
-    /*public void openCamera (View view){
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }
-        //dispatchTakePictureIntent();
-        //galleryAddPic();
-    }*/
 
     String mCurrentPhotoPath;
 
@@ -236,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 photoFile = createImageFile();
                 photoFileList.add(photoFile);
-                Toast.makeText(getApplicationContext(), String.valueOf(photoFile), Toast.LENGTH_LONG).show();
             } catch (IOException ex) {
 
                 Toast.makeText(MainActivity.this, "Camera Error.",
@@ -260,32 +256,71 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    
+
+
     public void viewItems(View view) {
         setContentView(R.layout.closet_page2);
-        if(photoFile != null) {
-            ImageView imageView = (ImageView) findViewById(R.id.photo1);
-            File pathToPicture = photoFileList.get(0);
-            imageView.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-        }
-        /*if(photoFile!= null) {
-            Bitmap myBitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
-            ImageView myImage = (ImageView) findViewById(R.id.photo1);
-            myImage.setImageBitmap(myBitmap);
-        }*/
+        LinearLayout layout1 = (LinearLayout)findViewById(R.id.LinearLayout1); //0-2
+        LinearLayout layout2 = (LinearLayout)findViewById(R.id.LinearLayout2); //3-5
+        LinearLayout layout3 = (LinearLayout)findViewById(R.id.LinearLayout3); //6-8
+        LinearLayout layout4 = (LinearLayout)findViewById(R.id.LinearLayout4); //9-11
+        LinearLayout layout5 = (LinearLayout)findViewById(R.id.LinearLayout5); //12-14
+        LinearLayout layout6 = (LinearLayout)findViewById(R.id.LinearLayout6); //15-17
 
+        if(photoFile != null) {
+            int numberOfPhotos = photoFileList.size();
+            for(int i=0; i < numberOfPhotos; i++) {
+
+                DisplayMetrics metrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+                int width = metrics.widthPixels;
+                int height = metrics.heightPixels;
+
+
+                ImageView image = new ImageView(this);
+                image.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
+                //image.setMaxHeight(75);
+                //image.setMaxWidth(75);
+
+                if(i >= 0 && i <= 2) {
+                    layout1.addView(image);
+                    File pathToPicture = photoFileList.get(i);
+                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                }
+
+                /*
+                if(i >= 3 && i <= 5) {
+                    layout2.addView(image);
+                    File pathToPicture = photoFileList.get(i);
+                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                }
+                if(i >= 6 && i <= 8) {
+                    layout3.addView(image);
+                    File pathToPicture = photoFileList.get(i);
+                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                }
+                if(i >= 9 && i <= 11) {
+                    layout4.addView(image);
+                    File pathToPicture = photoFileList.get(i);
+                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                }
+                if(i >= 12 && i <= 14) {
+                    layout5.addView(image);
+                    File pathToPicture = photoFileList.get(i);
+                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                }
+                if(i >= 15 && i <= 17) {
+                    layout6.addView(image);
+                    File pathToPicture = photoFileList.get(i);
+                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                }*/
+            }
+        }
 
     }
 
-    //@Override
-   /* protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //setContentView(R.layout.closet_page2);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            ImageView mImageView = (ImageView) findViewById(R.id.photo1);
-            mImageView.setImageBitmap(imageBitmap);
-        }
-    }*/
 
 
     public void createAccount (View view){
