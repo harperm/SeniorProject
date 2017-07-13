@@ -5,20 +5,23 @@ import android.media.Image;
 import android.os.Bundle;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.text.AttributedCharacterIterator;
 import java.util.HashMap;
 import java.util.List;
 import android.os.Environment;
 import org.json.*;
-
+import android.graphics.Color;
 
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 //import android.support.v7.graphics.Palette;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -54,9 +57,12 @@ import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import static android.R.attr.bitmap;
+import static android.R.attr.color;
 
 
 public class MainActivity extends AppCompatActivity {
+
+
     static final int REQUEST_TAKE_PHOTO = 1;
     public List<File> photoFileList = new ArrayList<File>();
     File photoFile = null;
@@ -294,6 +300,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void colorTag () throws UnirestException {
 
+        //POST https://apicloud-colortag.p.mashape.com/tag-file.json
+
         String pathToPicture = String.valueOf(photoFileList.get(0));
         HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
                 .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
@@ -303,6 +311,8 @@ public class MainActivity extends AppCompatActivity {
                 .asJson();
 
         JSONObject myObj = response.getBody().getObject();
+        String obj = String.valueOf(myObj);
+
 
 
 
@@ -331,13 +341,17 @@ public class MainActivity extends AppCompatActivity {
 
                 ImageView image = new ImageView(this);
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
-                //image.setMaxHeight(75);
-                //image.setMaxWidth(75);
+                image.setMaxHeight(10);
+                image.setMaxWidth(10);
 
                 if(i >= 0 && i <= 2) {
                     layout1.addView(image);
                     File pathToPicture = photoFileList.get(i);
                     image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                    //Bitmap myBitmap = BitmapFactory.decodeFile(pathToPicture.getAbsolutePath());
+                    //String bytte = String.valueOf(myBitmap.getByteCount());
+                    //Toast.makeText(getApplicationContext(), bytte, Toast.LENGTH_LONG).show();
+
 
                 }
                 saveToDatebase(String.valueOf(photoFileList));
@@ -349,104 +363,11 @@ public class MainActivity extends AppCompatActivity {
                 //Toast.makeText(getApplicationContext(), a, Toast.LENGTH_LONG).show();
 
 
-                /*
-                if(i >= 3 && i <= 5) {
-                    layout2.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 6 && i <= 8) {
-                    layout3.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 9 && i <= 11) {
-                    layout4.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 12 && i <= 14) {
-                    layout5.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 15 && i <= 17) {
-                    layout6.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }*/
             }
         }
 
     }
 
-
-/*
-    public static int getDominantColor1(Bitmap bitmap) {
-        Palette.generate(bitmap);
-        if (bitmap == null)
-            throw new NullPointerException();
-
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        int size = width * height;
-        int pixels[] = new int[size];
-
-        Bitmap bitmap2 = bitmap.copy(Bitmap.Config.ARGB_4444, false);
-
-        bitmap2.getPixels(pixels, 0, width, 0, 0, width, height);
-
-        final List<HashMap<Integer, Integer>> colorMap = new ArrayList<HashMap<Integer, Integer>>();
-        colorMap.add(new HashMap<Integer, Integer>());
-        colorMap.add(new HashMap<Integer, Integer>());
-        colorMap.add(new HashMap<Integer, Integer>());
-
-        int color = 0;
-        int r = 0;
-        int g = 0;
-        int b = 0;
-        Integer rC, gC, bC;
-        for (int i = 0; i < pixels.length; i++) {
-            color = pixels[i];
-
-            r = Color.red(color);
-            g = Color.green(color);
-            b = Color.blue(color);
-
-            rC = colorMap.get(0).get(r);
-            if (rC == null)
-                rC = 0;
-            colorMap.get(0).put(r, ++rC);
-
-            gC = colorMap.get(1).get(g);
-            if (gC == null)
-                gC = 0;
-            colorMap.get(1).put(g, ++gC);
-
-            bC = colorMap.get(2).get(b);
-            if (bC == null)
-                bC = 0;
-            colorMap.get(2).put(b, ++bC);
-        }
-
-        int[] rgb = new int[3];
-        for (int i = 0; i < 3; i++) {
-            int max = 0;
-            int val = 0;
-            for (Map.Entry<Integer, Integer> entry : colorMap.get(i).entrySet()) {
-                if (entry.getValue() > max) {
-                    max = entry.getValue();
-                    val = entry.getKey();
-                }
-            }
-            rgb[i] = val;
-        }
-
-        int dominantColor = Color.rgb(rgb[0], rgb[1], rgb[2]);
-
-        return dominantColor;
-    }
-*/
 
     public void createAccount (View view){
         setContentView(R.layout.create_account);
