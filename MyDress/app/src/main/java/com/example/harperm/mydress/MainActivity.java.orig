@@ -45,9 +45,12 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
+<<<<<<< HEAD
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
+=======
+import java.util.Map;
+>>>>>>> mallory
 
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
@@ -57,9 +60,6 @@ import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 import static android.R.attr.bitmap;
-
-import com.amazonaws.services.rekognition.AmazonRekognition;
-import com.amazonaws.mobileconnectors.apigateway.*;
 
 
 public class MainActivity extends AppCompatActivity {
