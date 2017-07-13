@@ -364,6 +364,10 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Password must contain at least 1 lower case letter.",
                     Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
+        }else if(passwordConfirm != password){
+            Toast.makeText(MainActivity.this, "Passwords do not match.", Toast.LENGTH_SHORT).show();
+            ((EditText)findViewById(R.id.password)).setText("");
+            ((EditText)findViewById(R.id.passwordConfirm)).setText("");
         }
 
         else{
