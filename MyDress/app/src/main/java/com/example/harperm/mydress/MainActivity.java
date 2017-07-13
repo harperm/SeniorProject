@@ -1,21 +1,29 @@
 package com.example.harperm.mydress;
 
 import android.graphics.Color;
+import android.media.Image;
 import android.os.Bundle;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.text.AttributedCharacterIterator;
+import java.util.HashMap;
 import java.util.List;
 import android.os.Environment;
 import org.json.*;
-import com.loopj.android.http.*;
+
+
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
+//import android.support.v7.graphics.Palette;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.view.View;
 import android.content.Intent;
 import android.net.Uri;
@@ -28,6 +36,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ImageView;
 import java.io.File;
@@ -35,20 +44,33 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.mashape.unirest.http.*;
+import com.mashape.unirest.http.exceptions.UnirestException;
+
+import static android.R.attr.bitmap;
 
 
 public class MainActivity extends AppCompatActivity {
+    static final int REQUEST_TAKE_PHOTO = 1;
+    public List<File> photoFileList = new ArrayList<File>();
+    File photoFile = null;
+    String mCurrentPhotoPath;
 
     private TextView mTextMessage;
 
-    //private FirebaseAuth mAuth;
-    //private FirebaseAuth.AuthStateListener mAuthListener;
     private static final String TAG = "EmailPassword";
 
     // [START initialize_auth]
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     // [END initialize_auth]
+
+
 
     private FirebaseAuth.AuthStateListener mAuthListener = new FirebaseAuth.AuthStateListener() {
         @Override
@@ -110,6 +132,33 @@ public class MainActivity extends AppCompatActivity {
          //mTextMessage = (TextView) findViewById(R.id.message);
         //BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         //navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+    }
+
+    public String userEmail (){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String email = user.getEmail();
+        return email;
+    }
+
+    public void readFromDatabase(){
+        String intEmail = userEmail();
+        String email1 = intEmail.replaceAll("@", "");
+        String email = email1.replaceAll("\\.", "");
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference(email);
+        Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
+
+        // NEED TO FINISH THIS
+    }
+
+    public void saveToDatebase (String string){
+        String intEmail = userEmail();
+        String email1 = intEmail.replaceAll("@", "");
+        String email = email1.replaceAll("\\.", "");
+        Toast.makeText(getApplicationContext(), email, Toast.LENGTH_LONG).show();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference(email);
+
+        myRef.child("PhotoPath").setValue(string);
     }
 
     public void homepage (View view) {
@@ -195,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(viewIntent);
     }
 
-    String mCurrentPhotoPath;
+
 
     private File createImageFile() throws IOException {
         // Create an image file name
@@ -213,15 +262,6 @@ public class MainActivity extends AppCompatActivity {
         return image;
     }
 
-
-
-    static final int REQUEST_TAKE_PHOTO = 1;
-
-    public List<File> photoFileList = new ArrayList<File>();
-
-    static final int REQUEST_IMAGE_CAPTURE = 1;
-
-    File photoFile = null;
     public void openCamera (View view) {
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -248,16 +288,26 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
 
             }
-
-            Toast.makeText(getApplicationContext(), String.valueOf(photoFileList), Toast.LENGTH_LONG).show();
-
         }
 
     }
 
+    public void colorTag () throws UnirestException {
 
-    
+        String pathToPicture = String.valueOf(photoFileList.get(0));
+        HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
+                .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
+                .field("image", new File(pathToPicture))
+                .field("palette", "simple")
+                .field("sort", "relevance")
+                .asJson();
 
+        JSONObject myObj = response.getBody().getObject();
+
+
+
+
+    }
 
     public void viewItems(View view) {
         setContentView(R.layout.closet_page2);
@@ -288,7 +338,16 @@ public class MainActivity extends AppCompatActivity {
                     layout1.addView(image);
                     File pathToPicture = photoFileList.get(i);
                     image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+
                 }
+                saveToDatebase(String.valueOf(photoFileList));
+
+                readFromDatabase();
+                //File imgFile = photoFileList.get(0);
+                //Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                //int a = getDominantColor1(myBitmap);
+                //Toast.makeText(getApplicationContext(), a, Toast.LENGTH_LONG).show();
+
 
                 /*
                 if(i >= 3 && i <= 5) {
@@ -322,6 +381,72 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+/*
+    public static int getDominantColor1(Bitmap bitmap) {
+        Palette.generate(bitmap);
+        if (bitmap == null)
+            throw new NullPointerException();
+
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int size = width * height;
+        int pixels[] = new int[size];
+
+        Bitmap bitmap2 = bitmap.copy(Bitmap.Config.ARGB_4444, false);
+
+        bitmap2.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        final List<HashMap<Integer, Integer>> colorMap = new ArrayList<HashMap<Integer, Integer>>();
+        colorMap.add(new HashMap<Integer, Integer>());
+        colorMap.add(new HashMap<Integer, Integer>());
+        colorMap.add(new HashMap<Integer, Integer>());
+
+        int color = 0;
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        Integer rC, gC, bC;
+        for (int i = 0; i < pixels.length; i++) {
+            color = pixels[i];
+
+            r = Color.red(color);
+            g = Color.green(color);
+            b = Color.blue(color);
+
+            rC = colorMap.get(0).get(r);
+            if (rC == null)
+                rC = 0;
+            colorMap.get(0).put(r, ++rC);
+
+            gC = colorMap.get(1).get(g);
+            if (gC == null)
+                gC = 0;
+            colorMap.get(1).put(g, ++gC);
+
+            bC = colorMap.get(2).get(b);
+            if (bC == null)
+                bC = 0;
+            colorMap.get(2).put(b, ++bC);
+        }
+
+        int[] rgb = new int[3];
+        for (int i = 0; i < 3; i++) {
+            int max = 0;
+            int val = 0;
+            for (Map.Entry<Integer, Integer> entry : colorMap.get(i).entrySet()) {
+                if (entry.getValue() > max) {
+                    max = entry.getValue();
+                    val = entry.getKey();
+                }
+            }
+            rgb[i] = val;
+        }
+
+        int dominantColor = Color.rgb(rgb[0], rgb[1], rgb[2]);
+
+        return dominantColor;
+    }
+*/
 
     public void createAccount (View view){
         setContentView(R.layout.create_account);
@@ -426,14 +551,33 @@ public class MainActivity extends AppCompatActivity {
     }
     public void forgotPassword (View view){
         setContentView(R.layout.forgot_password);
+
+        String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
+        String password = ((EditText)findViewById(R.id.password)).getText().toString();
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName("Jane Q. User")
+                .setPhotoUri(Uri.parse("https://example.com/jane-q-user/profile.jpg"))
+                .build();
+
+        user.updateProfile(profileUpdates)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "User profile updated.");
+                        }
+                    }
+                });
+
+
     }
     public void signOut (View view){
         mAuth.signOut();
         setContentView(R.layout.login_screen);
     }
-
-
-
 
 
 }
