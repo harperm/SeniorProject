@@ -30,6 +30,10 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.AnswersEvent;
+import com.crashlytics.android.answers.ContentViewEvent;
 import com.google.firebase.auth.FirebaseAuth; //For Firbase Login
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
@@ -46,6 +50,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import java.util.jar.*;
+
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
 
@@ -308,9 +314,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void colorTag () throws UnirestException {
 
+        Toast.makeText(MainActivity.this, String.valueOf(photoFileList.get(0)),
+                Toast.LENGTH_SHORT).show();
+
+
+        // Old API Key
+        //  Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE
+
         String pathToPicture = String.valueOf(photoFileList.get(0));
         HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
-                .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
+                .header("X-Mashape-Key", "LhufMNcMDGmsh6pcmPjk8iVM0fdkp1lSlX1jsnVDc20yDqdhen")
                 .field("image", new File(pathToPicture))
                 .field("palette", "simple")
                 .field("sort", "relevance")
@@ -318,7 +331,13 @@ public class MainActivity extends AppCompatActivity {
 
         JSONObject myObj = response.getBody().getObject();
 
-
+        try {
+            String test = myObj.getString("tags");
+            Toast.makeText(MainActivity.this, test, Toast.LENGTH_SHORT).show();
+        } catch (JSONException e) {
+            Toast.makeText(MainActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
 
 
     }
@@ -593,8 +612,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void signOut (View view){
-        mAuth.signOut();
-        setContentView(R.layout.login_screen);
+
+        try {
+            colorTag();
+        } catch (UnirestException e) {
+            e.printStackTrace();
+        }
+//        mAuth.signOut();
+//        setContentView(R.layout.login_screen);
     }
     public void saveData (View view){
         // Write a message to the database
