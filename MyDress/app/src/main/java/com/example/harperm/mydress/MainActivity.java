@@ -16,6 +16,7 @@ import android.os.Environment;
 import org.json.*;
 import android.graphics.Color;
 
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
@@ -33,9 +34,12 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
+//import com.google.api.server.spi.auth.common.User;
 import com.google.firebase.auth.FirebaseAuth; //For Firbase Login
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.database.*;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import android.util.Log;
@@ -48,6 +52,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
@@ -55,9 +63,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
 
 import static android.R.attr.bitmap;
 import static android.R.attr.color;
+import static java.util.jar.Pack200.Packer.PASS;
+
+import com.amazonaws.services.rekognition.AmazonRekognition;
+import com.amazonaws.mobileconnectors.apigateway.*;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -93,12 +108,19 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public FirebaseUser user;
+
     @Override
     public void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        user = mAuth.getCurrentUser();
         //updateUI(currentUser);
+        if (user != null){
+            Log.v(TAG, "UID: " + user.getUid());
+             setContentView(R.layout.activity_main);
+        }
+
     }
 
     @Override
@@ -132,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Fabric.with(this, new Crashlytics());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_screen);
 
@@ -150,10 +173,22 @@ public class MainActivity extends AppCompatActivity {
         String intEmail = userEmail();
         String email1 = intEmail.replaceAll("@", "");
         String email = email1.replaceAll("\\.", "");
-        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference(email);
-        Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
 
-        // NEED TO FINISH THIS
+
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference(email).child("PhotoPath");
+        mDatabaseReference.addValueEventListener(
+                new ValueEventListener() {
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Object user = dataSnapshot.getValue(Object.class);
+                        Toast.makeText(getApplicationContext(), String.valueOf(user), Toast.LENGTH_LONG).show();
+                    }
+
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+        Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
     }
 
     public void saveToDatebase (String string){
@@ -175,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.login_screen);
     }
 
-    public void login (View view) {
+    public void login (final View view) {
         String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
 
@@ -186,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
+                            user = mAuth.getCurrentUser();
 //                            updateUI(user);
                             Toast.makeText(MainActivity.this, "Authentication Successful.",
                                     Toast.LENGTH_SHORT).show();
@@ -298,23 +333,40 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void colorTag () throws UnirestException {
+    public void colorTagOutput(View view) throws  UnirestException{
+        colorTag(view);
 
+    }
+
+    public void colorTag (View view) throws UnirestException {
         //POST https://apicloud-colortag.p.mashape.com/tag-file.json
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
-        String pathToPicture = String.valueOf(photoFileList.get(0));
-        HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
-                .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
-                .field("image", new File(pathToPicture))
-                .field("palette", "simple")
-                .field("sort", "relevance")
-                .asJson();
+        StrictMode.setThreadPolicy(policy);
 
-        JSONObject myObj = response.getBody().getObject();
-        String obj = String.valueOf(myObj);
-
-
-
+        if(!photoFileList.isEmpty()) {
+            String pathToPicture = String.valueOf(photoFileList.get(0));
+            Toast.makeText(getApplicationContext(), "Path is:", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), String.valueOf(pathToPicture), Toast.LENGTH_LONG).show();
+            try {
+                Toast.makeText(getApplicationContext(), "Working", Toast.LENGTH_LONG).show();
+                HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
+                        .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
+                        .field("image", new File(pathToPicture))
+                        .field("palette", "simple")
+                        .field("sort", "relevance")
+                        .asJson();
+                Toast.makeText(getApplicationContext(), "Completed!!!", Toast.LENGTH_LONG).show();
+                JSONObject myObj = response.getBody().getObject();
+                Toast.makeText(getApplicationContext(), String.valueOf(myObj), Toast.LENGTH_LONG).show();
+            }
+            catch(UnirestException e){
+                Toast.makeText(getApplicationContext(), String.valueOf(e), Toast.LENGTH_LONG).show();
+            }
+        }
+        else{
+            Toast.makeText(getApplicationContext(), "There is no photos, cannot find the color", Toast.LENGTH_LONG).show();
+        }
 
 
     }
@@ -348,15 +400,16 @@ public class MainActivity extends AppCompatActivity {
                     layout1.addView(image);
                     File pathToPicture = photoFileList.get(i);
                     image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                    saveToDatebase(String.valueOf(photoFileList));
                     //Bitmap myBitmap = BitmapFactory.decodeFile(pathToPicture.getAbsolutePath());
                     //String bytte = String.valueOf(myBitmap.getByteCount());
                     //Toast.makeText(getApplicationContext(), bytte, Toast.LENGTH_LONG).show();
 
 
                 }
-                saveToDatebase(String.valueOf(photoFileList));
 
-                readFromDatabase();
+
+
                 //File imgFile = photoFileList.get(0);
                 //Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                 //int a = getDominantColor1(myBitmap);
@@ -365,6 +418,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+        readFromDatabase();
 
     }
 
@@ -409,6 +463,7 @@ public class MainActivity extends AppCompatActivity {
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
         String passwordConfirm = ((EditText)findViewById(R.id.passwordConfirm)).getText().toString();
 
+
         int passwordLength = password.length();
         boolean numberCheck =  numberCheckString(password);
         boolean capitalCheck = capitalCheckString(password);
@@ -418,22 +473,29 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Password must be at least 8 characters long.",
                     Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
+            ((EditText)findViewById(R.id.passwordConfirm)).setText("");
         }
         else if(numberCheck == false){
                 Toast.makeText(MainActivity.this, "Password must contain at least 1 digit.",
                         Toast.LENGTH_SHORT).show();
                 ((EditText)findViewById(R.id.password)).setText("");
+                ((EditText)findViewById(R.id.passwordConfirm)).setText("");
 
         }
         else if(capitalCheck == false){
             Toast.makeText(MainActivity.this, "Password must contain at least 1 capital letter.",
                     Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
+            ((EditText)findViewById(R.id.passwordConfirm)).setText("");
         }
         else if (lowerCheck == false){
             Toast.makeText(MainActivity.this, "Password must contain at least 1 lower case letter.",
                     Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
+        }else if(!password.equals(passwordConfirm)){
+            Toast.makeText(MainActivity.this, "Passwords do not match.", Toast.LENGTH_SHORT).show();
+            ((EditText)findViewById(R.id.password)).setText("");
+            ((EditText)findViewById(R.id.passwordConfirm)).setText("");
         }
 
         else{
@@ -499,7 +561,13 @@ public class MainActivity extends AppCompatActivity {
         mAuth.signOut();
         setContentView(R.layout.login_screen);
     }
+    public void saveData (View view){
+        // Write a message to the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference();
 
+        myRef.child("users").child(user.getUid()).child("testData").setValue("Hello, World!");
+    }
 
 }
 

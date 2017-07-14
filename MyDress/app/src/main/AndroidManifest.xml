@@ -46,7 +46,12 @@
             android:label="@string/app_name"></activity>
         <activity
             android:name=".LaundryActivity"
-            android:label="@string/app_name"></activity>
+            android:label="@string/app_name">
+        </activity>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="2aef8d28b57c5597175c03ec13b99746e5efae78"
+            />
     </application>
-
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
