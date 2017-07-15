@@ -5,20 +5,24 @@ import android.media.Image;
 import android.os.Bundle;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.text.AttributedCharacterIterator;
 import java.util.HashMap;
 import java.util.List;
 import android.os.Environment;
 import org.json.*;
+import android.graphics.Color;
 
-
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 //import android.support.v7.graphics.Palette;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -31,9 +35,7 @@ import android.provider.MediaStore;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.AnswersEvent;
-import com.crashlytics.android.answers.ContentViewEvent;
+//import com.google.api.server.spi.auth.common.User;
 import com.google.firebase.auth.FirebaseAuth; //For Firbase Login
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
@@ -50,7 +52,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
-import java.util.jar.*;
+import java.util.concurrent.TimeUnit;
 
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
@@ -61,14 +63,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
 
 import static android.R.attr.bitmap;
+import static android.R.attr.color;
+import static java.util.jar.Pack200.Packer.PASS;
 
 import com.amazonaws.services.rekognition.AmazonRekognition;
 import com.amazonaws.mobileconnectors.apigateway.*;
 
 
 public class MainActivity extends AppCompatActivity {
+
+
     static final int REQUEST_TAKE_PHOTO = 1;
     public List<File> photoFileList = new ArrayList<File>();
     File photoFile = null;
@@ -164,10 +173,22 @@ public class MainActivity extends AppCompatActivity {
         String intEmail = userEmail();
         String email1 = intEmail.replaceAll("@", "");
         String email = email1.replaceAll("\\.", "");
-        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference(email);
-        Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
 
-        // NEED TO FINISH THIS
+
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference(email).child("PhotoPath");
+        mDatabaseReference.addValueEventListener(
+                new ValueEventListener() {
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Object user = dataSnapshot.getValue(Object.class);
+                        Toast.makeText(getApplicationContext(), String.valueOf(user), Toast.LENGTH_LONG).show();
+                    }
+
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+        Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
     }
 
     public void saveToDatebase (String string){
@@ -312,31 +333,39 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void colorTag () throws UnirestException {
+    public void colorTagOutput(View view) throws  UnirestException{
+        colorTag(view);
 
-        Toast.makeText(MainActivity.this, String.valueOf(photoFileList.get(0)),
-                Toast.LENGTH_SHORT).show();
+    }
 
+    public void colorTag (View view) throws UnirestException {
+        //POST https://apicloud-colortag.p.mashape.com/tag-file.json
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
-        // Old API Key
-        //  Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE
+        StrictMode.setThreadPolicy(policy);
 
-        String pathToPicture = String.valueOf(photoFileList.get(0));
-        HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
-                .header("X-Mashape-Key", "LhufMNcMDGmsh6pcmPjk8iVM0fdkp1lSlX1jsnVDc20yDqdhen")
-                .field("image", new File(pathToPicture))
-                .field("palette", "simple")
-                .field("sort", "relevance")
-                .asJson();
-
-        JSONObject myObj = response.getBody().getObject();
-
-        try {
-            String test = myObj.getString("tags");
-            Toast.makeText(MainActivity.this, test, Toast.LENGTH_SHORT).show();
-        } catch (JSONException e) {
-            Toast.makeText(MainActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+        if(!photoFileList.isEmpty()) {
+            String pathToPicture = String.valueOf(photoFileList.get(0));
+            Toast.makeText(getApplicationContext(), "Path is:", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), String.valueOf(pathToPicture), Toast.LENGTH_LONG).show();
+            try {
+                Toast.makeText(getApplicationContext(), "Working", Toast.LENGTH_LONG).show();
+                HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
+                        .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
+                        .field("image", new File(pathToPicture))
+                        .field("palette", "simple")
+                        .field("sort", "relevance")
+                        .asJson();
+                Toast.makeText(getApplicationContext(), "Completed!!!", Toast.LENGTH_LONG).show();
+                JSONObject myObj = response.getBody().getObject();
+                Toast.makeText(getApplicationContext(), String.valueOf(myObj), Toast.LENGTH_LONG).show();
+            }
+            catch(UnirestException e){
+                Toast.makeText(getApplicationContext(), String.valueOf(e), Toast.LENGTH_LONG).show();
+            }
+        }
+        else{
+            Toast.makeText(getApplicationContext(), "There is no photos, cannot find the color", Toast.LENGTH_LONG).show();
         }
 
 
@@ -364,122 +393,35 @@ public class MainActivity extends AppCompatActivity {
 
                 ImageView image = new ImageView(this);
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
-                //image.setMaxHeight(75);
-                //image.setMaxWidth(75);
+                image.setMaxHeight(10);
+                image.setMaxWidth(10);
 
                 if(i >= 0 && i <= 2) {
                     layout1.addView(image);
                     File pathToPicture = photoFileList.get(i);
                     image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                    saveToDatebase(String.valueOf(photoFileList));
+                    //Bitmap myBitmap = BitmapFactory.decodeFile(pathToPicture.getAbsolutePath());
+                    //String bytte = String.valueOf(myBitmap.getByteCount());
+                    //Toast.makeText(getApplicationContext(), bytte, Toast.LENGTH_LONG).show();
+
 
                 }
-                saveToDatebase(String.valueOf(photoFileList));
 
-                readFromDatabase();
+
+
                 //File imgFile = photoFileList.get(0);
                 //Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                 //int a = getDominantColor1(myBitmap);
                 //Toast.makeText(getApplicationContext(), a, Toast.LENGTH_LONG).show();
 
 
-                /*
-                if(i >= 3 && i <= 5) {
-                    layout2.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 6 && i <= 8) {
-                    layout3.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 9 && i <= 11) {
-                    layout4.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 12 && i <= 14) {
-                    layout5.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }
-                if(i >= 15 && i <= 17) {
-                    layout6.addView(image);
-                    File pathToPicture = photoFileList.get(i);
-                    image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                }*/
             }
         }
+        readFromDatabase();
 
     }
 
-
-/*
-    public static int getDominantColor1(Bitmap bitmap) {
-        Palette.generate(bitmap);
-        if (bitmap == null)
-            throw new NullPointerException();
-
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        int size = width * height;
-        int pixels[] = new int[size];
-
-        Bitmap bitmap2 = bitmap.copy(Bitmap.Config.ARGB_4444, false);
-
-        bitmap2.getPixels(pixels, 0, width, 0, 0, width, height);
-
-        final List<HashMap<Integer, Integer>> colorMap = new ArrayList<HashMap<Integer, Integer>>();
-        colorMap.add(new HashMap<Integer, Integer>());
-        colorMap.add(new HashMap<Integer, Integer>());
-        colorMap.add(new HashMap<Integer, Integer>());
-
-        int color = 0;
-        int r = 0;
-        int g = 0;
-        int b = 0;
-        Integer rC, gC, bC;
-        for (int i = 0; i < pixels.length; i++) {
-            color = pixels[i];
-
-            r = Color.red(color);
-            g = Color.green(color);
-            b = Color.blue(color);
-
-            rC = colorMap.get(0).get(r);
-            if (rC == null)
-                rC = 0;
-            colorMap.get(0).put(r, ++rC);
-
-            gC = colorMap.get(1).get(g);
-            if (gC == null)
-                gC = 0;
-            colorMap.get(1).put(g, ++gC);
-
-            bC = colorMap.get(2).get(b);
-            if (bC == null)
-                bC = 0;
-            colorMap.get(2).put(b, ++bC);
-        }
-
-        int[] rgb = new int[3];
-        for (int i = 0; i < 3; i++) {
-            int max = 0;
-            int val = 0;
-            for (Map.Entry<Integer, Integer> entry : colorMap.get(i).entrySet()) {
-                if (entry.getValue() > max) {
-                    max = entry.getValue();
-                    val = entry.getKey();
-                }
-            }
-            rgb[i] = val;
-        }
-
-        int dominantColor = Color.rgb(rgb[0], rgb[1], rgb[2]);
-
-        return dominantColor;
-    }
-*/
 
     public void createAccount (View view){
         setContentView(R.layout.create_account);
@@ -521,6 +463,7 @@ public class MainActivity extends AppCompatActivity {
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
         String passwordConfirm = ((EditText)findViewById(R.id.passwordConfirm)).getText().toString();
 
+
         int passwordLength = password.length();
         boolean numberCheck =  numberCheckString(password);
         boolean capitalCheck = capitalCheckString(password);
@@ -530,23 +473,26 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Password must be at least 8 characters long.",
                     Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
+            ((EditText)findViewById(R.id.passwordConfirm)).setText("");
         }
         else if(numberCheck == false){
                 Toast.makeText(MainActivity.this, "Password must contain at least 1 digit.",
                         Toast.LENGTH_SHORT).show();
                 ((EditText)findViewById(R.id.password)).setText("");
+                ((EditText)findViewById(R.id.passwordConfirm)).setText("");
 
         }
         else if(capitalCheck == false){
             Toast.makeText(MainActivity.this, "Password must contain at least 1 capital letter.",
                     Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
+            ((EditText)findViewById(R.id.passwordConfirm)).setText("");
         }
         else if (lowerCheck == false){
             Toast.makeText(MainActivity.this, "Password must contain at least 1 lower case letter.",
                     Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
-        }else if(passwordConfirm != password){
+        }else if(!password.equals(passwordConfirm)){
             Toast.makeText(MainActivity.this, "Passwords do not match.", Toast.LENGTH_SHORT).show();
             ((EditText)findViewById(R.id.password)).setText("");
             ((EditText)findViewById(R.id.passwordConfirm)).setText("");
@@ -612,14 +558,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void signOut (View view){
-
-        try {
-            colorTag();
-        } catch (UnirestException e) {
-            e.printStackTrace();
-        }
-//        mAuth.signOut();
-//        setContentView(R.layout.login_screen);
+        mAuth.signOut();
+        setContentView(R.layout.login_screen);
     }
     public void saveData (View view){
         // Write a message to the database

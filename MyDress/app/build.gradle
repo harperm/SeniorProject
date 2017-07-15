@@ -51,12 +51,13 @@ dependencies {
     compile 'com.android.support:support-vector-drawable:25.3.1'
     compile 'com.google.firebase:firebase-auth:10.2.6'
     compile 'com.google.firebase:firebase-database:10.2.6'
+    compile 'com.google.code.findbugs:jsr305:2.0.1'
     testCompile 'junit:junit:4.12'
+    compile project(path: ':backend', configuration: 'android-endpoints')
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
+    apply plugin: 'com.google.gms.google-services'
+
+
 }
-apply plugin: 'com.google.gms.google-services'
-
-
-
