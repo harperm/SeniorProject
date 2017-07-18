@@ -1,41 +1,25 @@
 package com.example.harperm.mydress;
 
-import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
-
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.text.AttributedCharacterIterator;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import android.os.Environment;
 import org.json.*;
-import android.graphics.Color;
-
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-//import android.support.v7.graphics.Palette;
-import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.view.View;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-
-//import com.google.api.server.spi.auth.common.User;
 import com.google.firebase.auth.FirebaseAuth; //For Firbase Login
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.AuthResult;
@@ -51,38 +35,30 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
-
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 
-import static android.R.attr.bitmap;
-import static android.R.attr.color;
-import static java.util.jar.Pack200.Packer.PASS;
-
-import com.amazonaws.services.rekognition.AmazonRekognition;
-import com.amazonaws.mobileconnectors.apigateway.*;
-
 
 public class MainActivity extends AppCompatActivity {
 
-
+    HashMap<String, List<String>> dictionary = new HashMap<String, List<String>>();
+    List<String> topList = new ArrayList<String>();
+    List<String> bottomList = new ArrayList<String>();
     static final int REQUEST_TAKE_PHOTO = 1;
     public List<File> photoFileList = new ArrayList<File>();
     File photoFile = null;
     String mCurrentPhotoPath;
-
     private TextView mTextMessage;
 
     private static final String TAG = "EmailPassword";
@@ -169,37 +145,45 @@ public class MainActivity extends AppCompatActivity {
         return email;
     }
 
-    public void readFromDatabase(){
+    public void readFromDatabase(View view, Integer count){
         String intEmail = userEmail();
         String email1 = intEmail.replaceAll("@", "");
         String email = email1.replaceAll("\\.", "");
 
-
-        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference(email).child("PhotoPath");
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference(email + "/" + String.valueOf(count));
         mDatabaseReference.addValueEventListener(
                 new ValueEventListener() {
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        Object user = dataSnapshot.getValue(Object.class);
-                        Toast.makeText(getApplicationContext(), String.valueOf(user), Toast.LENGTH_LONG).show();
+                        Object clothing = dataSnapshot.getValue(Object.class);
+                        String clothingItem = String.valueOf(clothing);
+                        String clothingItem1 = clothingItem.replace("{","");
+                        String clothingItem2 = clothingItem1.replace("}","");
+                        List<String> clothingList = new ArrayList<String>(Arrays.asList(clothingItem2.split(",")));
+                        String clothingType = clothingList.get(1);
+                        String clothingPath = clothingList.get(0);
+                        String clothingPath1 = clothingPath.replace("PhotoPath=","");
+                        if(clothingType.contains("Bottom")){
+                            bottomList.add(clothingPath1);
+                        }
+                        else if(clothingType.contains("Top")){
+                            topList.add(clothingPath1);
+                        }
                     }
-
                     public void onCancelled(DatabaseError databaseError) {
 
                     }
                 });
 
-        Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
+        //Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
     }
 
-    public void saveToDatebase (String string){
+    public void saveToDatebase (Integer count, String child, String value){
         String intEmail = userEmail();
         String email1 = intEmail.replaceAll("@", "");
         String email = email1.replaceAll("\\.", "");
-        Toast.makeText(getApplicationContext(), email, Toast.LENGTH_LONG).show();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference(email);
-
-        myRef.child("PhotoPath").setValue(string);
+        myRef.child(String.valueOf(count)).child(child).setValue(value);
     }
 
     public void homepage (View view) {
@@ -285,8 +269,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(viewIntent);
     }
 
-
-
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -333,52 +315,154 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void colorTagOutput(View view) throws  UnirestException{
-        colorTag(view);
-
-    }
-
-    public void colorTag (View view) throws UnirestException {
+    public String colorTag (View view, Integer count, String pictureFile) throws UnirestException {
+        String colorDefined = null;
         //POST https://apicloud-colortag.p.mashape.com/tag-file.json
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
         StrictMode.setThreadPolicy(policy);
 
         if(!photoFileList.isEmpty()) {
-            String pathToPicture = String.valueOf(photoFileList.get(0));
-            Toast.makeText(getApplicationContext(), "Path is:", Toast.LENGTH_LONG).show();
-            Toast.makeText(getApplicationContext(), String.valueOf(pathToPicture), Toast.LENGTH_LONG).show();
             try {
-                Toast.makeText(getApplicationContext(), "Working", Toast.LENGTH_LONG).show();
                 HttpResponse<JsonNode> response = Unirest.post("https://apicloud-colortag.p.mashape.com/tag-file.json")
                         .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
-                        .field("image", new File(pathToPicture))
+                        .field("image", new File(pictureFile))
                         .field("palette", "simple")
                         .field("sort", "relevance")
                         .asJson();
-                Toast.makeText(getApplicationContext(), "Completed!!!", Toast.LENGTH_LONG).show();
                 JSONObject myObj = response.getBody().getObject();
-                Toast.makeText(getApplicationContext(), String.valueOf(myObj), Toast.LENGTH_LONG).show();
+                List<String> myList = new ArrayList<String>(Arrays.asList(String.valueOf(myObj).split("label")));
+                String color = myList.get(1);
+
+                if(color.contains("Red")){
+                    saveToDatebase(count,"ColorTag","Red");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Orange")){
+                    saveToDatebase(count,"ColorTag","Orange");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Yellow")){
+                    saveToDatebase(count, "ColorTag","Yellow");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Green")){
+                    saveToDatebase(count, "ColorTag","Green");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Cyan")){
+                    saveToDatebase(count, "ColorTag","Cyan");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Blue")){
+                    saveToDatebase(count, "ColorTag","Blue");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Purple")){
+                    saveToDatebase(count, "ColorTag","Purple");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Pink")){
+                    saveToDatebase(count, "ColorTag","Pink");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Beige")){
+                    saveToDatebase(count, "ColorTag","Beige");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Brown")){
+                    saveToDatebase(count, "ColorTag","Brown");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("White")){
+                    saveToDatebase(count, "ColorTag","White");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Gray")){
+                    saveToDatebase(count, "ColorTag","Gray");
+                    colorDefined = "Red";
+                }
+                else if(color.contains("Black")){
+                    saveToDatebase(count, "ColorTag","Black");
+                    colorDefined = "Red";
+                }
+                else{
+                    colorDefined = "Red";
+                }
+
             }
             catch(UnirestException e){
-                Toast.makeText(getApplicationContext(), String.valueOf(e), Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Api Call Error: " + String.valueOf(e), Toast.LENGTH_LONG).show();
             }
         }
         else{
             Toast.makeText(getApplicationContext(), "There is no photos, cannot find the color", Toast.LENGTH_LONG).show();
         }
 
-
+        return colorDefined;
     }
 
-    public void viewItems(View view) {
+    public String recognition (View view, Integer count, String pictureFile) throws  UnirestException{
+            String objDefined=null;
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+
+            if(!photoFileList.isEmpty()) {
+                try {
+                    HttpResponse<JsonNode> response = Unirest.post("https://zyanyatech1-image-recognition-v1.p.mashape.com/")
+                            .header("X-Mashape-Key", "Z2wYzX8a6imshpT1USvHw9MsrumRp1sjz78jsn7Gw78pE6MMCE")
+                            .field("imgUploader", new File(pictureFile))
+                            .asJson();
+                    JSONObject myObj = response.getBody().getObject();
+                    objDefined = String.valueOf(myObj);
+                    if(objDefined.contains("Long Sleeve")|objDefined.contains("Shirt")| objDefined.contains("T-Shirt")|
+                            objDefined.contains("Blouse")|objDefined.contains("Sweater")| objDefined.contains("Sweatshirt")|
+                            objDefined.contains("Jacket")){
+                        saveToDatebase(count, "Object", "Top");
+                    }
+                    else if(objDefined.contains("Shorts") | objDefined.contains("Pants") | objDefined.contains("Jean")){
+                        saveToDatebase(count, "Object", "Bottom");
+                    }
+                    /*
+                    else{
+
+                        setContentView(R.layout.undefined_obj);
+                        String clothingType = ((EditText)findViewById(R.id.clothingType)).getText().toString();
+                        if(clothingType == "Bottom" | clothingType =="bottom"){
+                            saveToDatebase(count, "Object", "Bottom");
+                        }
+                        else if(clothingType== "Top" | clothingType =="top"){
+                            saveToDatebase(count, "Object", "Top");
+                        }
+                        else{
+                            Toast.makeText(MainActivity.this, "Must enter either Top or Bottom.",
+                                    Toast.LENGTH_SHORT).show();
+                            ((EditText)findViewById(R.id.clothingType)).setText("");
+
+                        }
+
+
+                    }*/
+                }
+                catch(UnirestException e){
+                    Toast.makeText(getApplicationContext(), "Api Call Error: " + String.valueOf(e), Toast.LENGTH_LONG).show();
+                }
+            }
+            else{
+                Toast.makeText(getApplicationContext(), "There is no photos, cannot find the type", Toast.LENGTH_LONG).show();
+            }
+
+        return objDefined;
+    }
+
+    public void viewItems(View view) throws UnirestException{
         setContentView(R.layout.closet_page2);
         LinearLayout layout1 = (LinearLayout)findViewById(R.id.LinearLayout1); //0-2
         LinearLayout layout2 = (LinearLayout)findViewById(R.id.LinearLayout2); //3-5
         LinearLayout layout3 = (LinearLayout)findViewById(R.id.LinearLayout3); //6-8
-        LinearLayout layout4 = (LinearLayout)findViewById(R.id.LinearLayout4); //9-11
-        LinearLayout layout5 = (LinearLayout)findViewById(R.id.LinearLayout5); //12-14
-        LinearLayout layout6 = (LinearLayout)findViewById(R.id.LinearLayout6); //15-17
+        //LinearLayout layout4 = (LinearLayout)findViewById(R.id.LinearLayout4); //9-11
+        //LinearLayout layout5 = (LinearLayout)findViewById(R.id.LinearLayout5); //12-14
+        //LinearLayout layout6 = (LinearLayout)findViewById(R.id.LinearLayout6); //15-17
 
         if(photoFile != null) {
             int numberOfPhotos = photoFileList.size();
@@ -396,17 +480,50 @@ public class MainActivity extends AppCompatActivity {
                 image.setMaxHeight(10);
                 image.setMaxWidth(10);
 
+                ImageView image2 = new ImageView(this);
+                image2.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
+                image2.setMaxHeight(10);
+                image2.setMaxWidth(10);
+
+                ImageView image3 = new ImageView(this);
+                image3.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
+                image3.setMaxHeight(10);
+                image3.setMaxWidth(10);
+
                 if(i >= 0 && i <= 2) {
                     layout1.addView(image);
                     File pathToPicture = photoFileList.get(i);
+                    String pictureFile = String.valueOf(pathToPicture);
                     image.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
-                    saveToDatebase(String.valueOf(photoFileList));
-                    //Bitmap myBitmap = BitmapFactory.decodeFile(pathToPicture.getAbsolutePath());
-                    //String bytte = String.valueOf(myBitmap.getByteCount());
-                    //Toast.makeText(getApplicationContext(), bytte, Toast.LENGTH_LONG).show();
-
-
+                    saveToDatebase(i, "PhotoPath", pictureFile);
+                    colorTag(view, i, pictureFile);
+                    recognition(view, i, pictureFile);
+                    readFromDatabase(view, i);
                 }
+                else if(i >= 3 && i <= 5) {
+                    layout2.addView(image2);
+                    File pathToPicture = photoFileList.get(i);
+                    String pictureFile = String.valueOf(pathToPicture);
+                    image2.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                    saveToDatebase(i, "PhotoPath", pictureFile);
+                    colorTag(view, i, pictureFile);
+                    recognition(view, i, pictureFile);
+                    readFromDatabase(view, i);
+                }
+
+                else if(i >= 6 && i <= 8) {
+                    layout3.addView(image3);
+                    File pathToPicture = photoFileList.get(i);
+                    String pictureFile = String.valueOf(pathToPicture);
+                    image3.setImageBitmap(BitmapFactory.decodeFile(pathToPicture.getAbsolutePath()));
+                    saveToDatebase(i, "PhotoPath", pictureFile);
+                    colorTag(view, i, pictureFile);
+                    recognition(view, i, pictureFile);
+                    readFromDatabase(view, i);
+                }
+
+
+
 
 
 
@@ -418,9 +535,59 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
-        readFromDatabase();
-
     }
+
+    public void generateOutfit(View view){
+
+            if(bottomList.isEmpty()){
+                Toast.makeText(getApplicationContext(), "Must Add a Bottom First", Toast.LENGTH_LONG).show();
+            }
+            else if(topList.isEmpty()){
+                Toast.makeText(getApplicationContext(), "Must Add a Top First", Toast.LENGTH_LONG).show();
+            }
+            else{
+                setContentView(R.layout.generated_outfit);
+                LinearLayout layoutTop = (LinearLayout)findViewById(R.id.LinearLayout2);
+                LinearLayout layoutBottom = (LinearLayout) findViewById(R.id.LinearLayout3);
+
+                DisplayMetrics metrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+                int width = metrics.widthPixels;
+                int height = metrics.heightPixels;
+
+
+                ImageView imageTop = new ImageView(this);
+                imageTop.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
+               // imageTop.setMaxHeight(10);
+               // imageTop.setMaxWidth(10);
+
+                ImageView imageBottom = new ImageView(this);
+                imageBottom.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
+                //imageTop.setMaxHeight(10);
+               // imageTop.setMaxWidth(10);
+
+                layoutBottom.addView(imageBottom);
+                layoutTop.addView(imageTop);
+
+                int bottomSize = bottomList.size();
+                int topSize = topList.size();
+
+                Random random = new Random();
+                int randomNumTop = random.nextInt((topSize));
+                int randomNumBottom = random.nextInt((bottomSize));
+
+                String bottomPicture = bottomList.get(randomNumBottom);
+                String topPicture = topList.get(randomNumTop);
+                File bottomFile = new File(bottomPicture);
+                File topFile = new File(topPicture);
+                imageTop.setImageBitmap(BitmapFactory.decodeFile(topFile.getAbsolutePath()));
+                imageBottom.setImageBitmap(BitmapFactory.decodeFile(bottomFile.getAbsolutePath()));
+            }
+
+        }
+
+
 
 
     public void createAccount (View view){
@@ -538,35 +705,24 @@ public class MainActivity extends AppCompatActivity {
         String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+/*        String currentEmail = userEmail();
 
-        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                .setDisplayName("Jane Q. User")
-                .setPhotoUri(Uri.parse("https://example.com/jane-q-user/profile.jpg"))
-                .build();
-
-        user.updateProfile(profileUpdates)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "User profile updated.");
-                        }
-                    }
-                });
+        Toast.makeText(MainActivity.this, email,
+                Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, currentEmail,
+                Toast.LENGTH_SHORT).show();*/
 
 
+
+
+
+//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+  //      user.updatePassword(password);
     }
+
     public void signOut (View view){
         mAuth.signOut();
         setContentView(R.layout.login_screen);
-    }
-    public void saveData (View view){
-        // Write a message to the database
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference();
-
-        myRef.child("users").child(user.getUid()).child("testData").setValue("Hello, World!");
     }
 
 }

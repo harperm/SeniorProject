@@ -1,0 +1,60 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:weightSum="1">
+        <ImageView
+            android:layout_width="239dp"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/home"
+            android:id="@+id/imageView1"
+            android:layout_weight="0.48" />
+    <EditText
+    android:id="@+id/undefinedObj"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:ems="20"
+    android:inputType="textMultiLine"
+    android:gravity="center"
+    android:textSize="32sp"
+    android:text="Im sorry, this object cannot be identified!"/>
+
+    <EditText
+        android:id="@+id/enterObj"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="20"
+        android:inputType="textMultiLine"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:text="Below enter if the clothing is a top or bottom:"/>
+
+        <EditText
+            android:id="@+id/clothingType"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textEmailAddress"
+            android:gravity="center"
+            android:hint="Top or Bottom"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:onClick="viewItems"/>
+
+
+</LinearLayout>
+    </LinearLayout>

@@ -69,13 +69,14 @@
         <Button
             android:layout_width="220dp"
             android:layout_height="wrap_content"
-            android:text="Color Tag Ouput"
-            android:id="@+id/colorTag"
+            android:id="@+id/outfitGenerate"
+            android:text="Generate Outfit"
             android:gravity="center"
             android:layout_below="@+id/textView"
             android:padding="20dp"
-            android:onClick="colorTagOutput"
-            />
+            android:onClick="generateOutfit"/>
+
+
 
 
     </LinearLayout>

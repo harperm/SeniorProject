@@ -26,7 +26,17 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:gravity="center_horizontal"
         android:orientation="horizontal">
+
+        <Button
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:text="Generate New Outfit"
+            android:id="@+id/newGenerate"
+            android:gravity="center"
+            android:padding="10dp"
+            android:onClick="generateOutfit"/>
 
     </LinearLayout>
     <LinearLayout
@@ -34,7 +44,9 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_weight="1">
+        android:layout_weight=".5">
+
+
 
     </LinearLayout>
 
@@ -43,9 +55,10 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_weight="1">
+        android:layout_weight=".5">
 
     </LinearLayout>
+
 
 
 </LinearLayout>
