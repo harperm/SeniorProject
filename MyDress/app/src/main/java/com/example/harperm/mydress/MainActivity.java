@@ -522,17 +522,6 @@ public class MainActivity extends AppCompatActivity {
                     readFromDatabase(view, i);
                 }
 
-
-
-
-
-
-                //File imgFile = photoFileList.get(0);
-                //Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                //int a = getDominantColor1(myBitmap);
-                //Toast.makeText(getApplicationContext(), a, Toast.LENGTH_LONG).show();
-
-
             }
         }
     }
@@ -587,12 +576,10 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-
-
-
     public void createAccount (View view){
         setContentView(R.layout.create_account);
     }
+
     public static  boolean numberCheckString(String str){
         char ch;
         for(int i=0; i < str.length(); i++){
@@ -604,6 +591,7 @@ public class MainActivity extends AppCompatActivity {
 
         return false;
     }
+
     public static boolean capitalCheckString(String str){
         char ch;
         for(int i=0; i < str.length(); i++){
@@ -614,6 +602,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
     public static boolean lowerCheckString(String str){
         char ch;
         for(int i=0; i < str.length(); i++){
@@ -682,6 +671,16 @@ public class MainActivity extends AppCompatActivity {
 //                            updateUI(user);
                                 Toast.makeText(MainActivity.this, "Authentication Success.",
                                         Toast.LENGTH_SHORT).show();
+                                setContentView(R.layout.activity_main);
+                                user.sendEmailVerification()
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
+                                                    Log.d(TAG, "Email sent.");
+                                                }
+                                            }
+                                        });
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -693,31 +692,30 @@ public class MainActivity extends AppCompatActivity {
                             // ...
                         }
                     });
-
         }
-
-
-
     }
+
     public void forgotPassword (View view){
         setContentView(R.layout.forgot_password);
+    }
 
-        String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
-        String password = ((EditText)findViewById(R.id.password)).getText().toString();
+    public void resetPassword(View view){
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String emailAddress = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
 
-/*        String currentEmail = userEmail();
-
-        Toast.makeText(MainActivity.this, email,
-                Toast.LENGTH_SHORT).show();
-        Toast.makeText(MainActivity.this, currentEmail,
-                Toast.LENGTH_SHORT).show();*/
-
-
-
-
-
-//        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-  //      user.updatePassword(password);
+        auth.sendPasswordResetEmail(emailAddress)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(MainActivity.this, "Password reset email sent.", Toast.LENGTH_LONG).show();
+                            Log.d(TAG, "Email sent.");
+                            setContentView(R.layout.login_screen);
+                        }else{
+                            Toast.makeText(MainActivity.this, "Please check the email and try again", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
     }
 
     public void signOut (View view){
