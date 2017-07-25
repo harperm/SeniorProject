@@ -475,17 +475,22 @@ public class MainActivity extends AppCompatActivity {
                 int height = metrics.heightPixels;
 
 
+
+
                 ImageView image = new ImageView(this);
+                image.setRotation(90);
                 image.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
                 image.setMaxHeight(10);
                 image.setMaxWidth(10);
 
                 ImageView image2 = new ImageView(this);
+                image2.setRotation(90);
                 image2.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
                 image2.setMaxHeight(10);
                 image2.setMaxWidth(10);
 
                 ImageView image3 = new ImageView(this);
+                image3.setRotation(90);
                 image3.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
                 image3.setMaxHeight(10);
                 image3.setMaxWidth(10);
@@ -547,11 +552,13 @@ public class MainActivity extends AppCompatActivity {
 
 
                 ImageView imageTop = new ImageView(this);
+                imageTop.setRotation(90);
                 imageTop.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
                // imageTop.setMaxHeight(10);
                // imageTop.setMaxWidth(10);
 
                 ImageView imageBottom = new ImageView(this);
+                imageBottom.setRotation(90);
                 imageBottom.setLayoutParams(new android.view.ViewGroup.LayoutParams(width/3,height/3));
                 //imageTop.setMaxHeight(10);
                // imageTop.setMaxWidth(10);

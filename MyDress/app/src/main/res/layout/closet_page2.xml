@@ -21,6 +21,15 @@
         android:onClick="signOut"
         app:srcCompat="@mipmap/logout" />
 
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Welcome to Your Closet!"
+        android:id="@+id/textView"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"/>
+
     <LinearLayout
         android:id="@+id/LinearLayout1"
         android:layout_width="fill_parent"
