@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
     // [END initialize_auth]
 
 
-
+    //If the app is open, and user has perivously signed in, stay logged in
     private FirebaseAuth.AuthStateListener mAuthListener = new FirebaseAuth.AuthStateListener() {
         @Override
         public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     public FirebaseUser user;
 
     @Override
+    //app opening: bring to main screen
     public void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
@@ -100,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    //sign out user end of applicaiton
     public void onStop() {
         super.onStop();
         if (mAuthListener != null) {
@@ -139,12 +141,16 @@ public class MainActivity extends AppCompatActivity {
         //navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
 
+    //helper function, used throughout
     public String userEmail (){
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         String email = user.getEmail();
         return email;
     }
 
+    //Reads the clothing type and color from database in order to help generate an outfit.
+    //When reading from database, the clothing file path (also saved in database will be
+    //added to a global top or bottom list for later usage.
     public void readFromDatabase(View view, Integer count){
         String intEmail = userEmail();
         String email1 = intEmail.replaceAll("@", "");
@@ -177,6 +183,10 @@ public class MainActivity extends AppCompatActivity {
         //Toast.makeText(getApplicationContext(), String.valueOf(mDatabaseReference), Toast.LENGTH_LONG).show();
     }
 
+    //Things saved to database for the given user:
+        //photo path
+        //object (Top/Bottom)
+        //color of object
     public void saveToDatebase (Integer count, String child, String value){
         String intEmail = userEmail();
         String email1 = intEmail.replaceAll("@", "");
@@ -194,6 +204,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.login_screen);
     }
 
+
+    /*
+        Login:
+            with mauth (built into firebase, more info in documentation), verify
+            that the user creating is successful, both the email and password and correct
+            based on the informaiton contained in the database for the given user
+     */
     public void login (final View view) {
         String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
@@ -223,6 +240,10 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /*Functions below are simple navigation helpers
+        I.e. button clicked, moving forward through app
+     */
+
     public void openCloset(View view) {
         setContentView(R.layout.closet_page1);
     }
@@ -239,6 +260,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
+    /* Redirects:
+        Each redirect contains the url to the stores shopping page
+        When the user selects the stores logo in the shopping sections
+        of the application, the user will be redirected to the shopping
+        website.
+     */
     public void aeRedirect (View view){
         Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://www.ae.com/"));
             startActivity(viewIntent);
@@ -269,6 +296,8 @@ public class MainActivity extends AppCompatActivity {
         startActivity(viewIntent);
     }
 
+    //Helper function user in openCamers which created the given
+    //file path to store the photo.
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -285,6 +314,16 @@ public class MainActivity extends AppCompatActivity {
         return image;
     }
 
+    /* Camera:
+        When the camera is open, an image file will be created  up capture
+        This will be where the image is stored on the device. Inside the
+        android manifest, it is defined that the device in which is running
+        the application must contain a camera.
+
+        The camera will not capture and save the image if the file path is
+        not created successfully.
+
+     */
     public void openCamera (View view) {
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -314,6 +353,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    /*colorTag:
+        Helper function used in viewItems in order to make the ColorTag API Call.
+        Base on the response of the call, a list of colors will be returned. The first color
+        contains the main makeup of the article of clothing and will be added to the database
+        under the color tag for the given photopath.
+     */
 
     public String colorTag (View view, Integer count, String pictureFile) throws UnirestException {
         String colorDefined = null;
@@ -402,6 +448,12 @@ public class MainActivity extends AppCompatActivity {
         return colorDefined;
     }
 
+    /* recognition:
+        Helper function used in viewItems in order to make the Image Recognition API Call
+        Based on the response, it looks to see if it contains any of the key words for tops/bottoms.
+        If so, the article of clothing will be updated in the database to contain the correct tag for
+        object.
+     */
     public String recognition (View view, Integer count, String pictureFile) throws  UnirestException{
             String objDefined=null;
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -420,29 +472,11 @@ public class MainActivity extends AppCompatActivity {
                             objDefined.contains("Jacket")){
                         saveToDatebase(count, "Object", "Top");
                     }
-                    else if(objDefined.contains("Shorts") | objDefined.contains("Pants") | objDefined.contains("Jean")){
+                    else if(objDefined.contains("Shorts") | objDefined.contains("Pants") | objDefined.contains("Jean")
+                            | objDefined.contains("Capris") | objDefined.contains("Skirt") | objDefined.contains("Skort")){
                         saveToDatebase(count, "Object", "Bottom");
                     }
-                    /*
-                    else{
 
-                        setContentView(R.layout.undefined_obj);
-                        String clothingType = ((EditText)findViewById(R.id.clothingType)).getText().toString();
-                        if(clothingType == "Bottom" | clothingType =="bottom"){
-                            saveToDatebase(count, "Object", "Bottom");
-                        }
-                        else if(clothingType== "Top" | clothingType =="top"){
-                            saveToDatebase(count, "Object", "Top");
-                        }
-                        else{
-                            Toast.makeText(MainActivity.this, "Must enter either Top or Bottom.",
-                                    Toast.LENGTH_SHORT).show();
-                            ((EditText)findViewById(R.id.clothingType)).setText("");
-
-                        }
-
-
-                    }*/
                 }
                 catch(UnirestException e){
                     Toast.makeText(getApplicationContext(), "Api Call Error: " + String.valueOf(e), Toast.LENGTH_LONG).show();
@@ -455,6 +489,15 @@ public class MainActivity extends AppCompatActivity {
         return objDefined;
     }
 
+    /* view items:
+        When the items in ones closet is viewed, all information is shared to the database
+        Both API calls are made here (colorTag and Recognition)
+        The photopath is saved with the two tags: object and color
+        Based on the responsed of the api calls, the information is updated in the database.
+
+        Api Calls are made via Unirest and mashape, view documentation for further
+        details.
+     */
     public void viewItems(View view) throws UnirestException{
         setContentView(R.layout.closet_page2);
         LinearLayout layout1 = (LinearLayout)findViewById(R.id.LinearLayout1); //0-2
@@ -531,6 +574,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /* outfit generation:
+        the user must have at least one top or bottom saved to their account.
+        If not, an outfit cannot be generated.
+
+        Creates image view for both the top and bottom in order to display the pictures
+        of the selected clothing
+
+        Look at the global lists for top in bottom in order to pick the one being displayed.
+        The photopaths are added to these list in order to be added to the given photoview.
+     */
     public void generateOutfit(View view){
 
             if(bottomList.isEmpty()){
@@ -583,10 +636,13 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+    //navigate to createAccount screen
     public void createAccount (View view){
         setContentView(R.layout.create_account);
     }
 
+
+    //Checked used in register user
     public static  boolean numberCheckString(String str){
         char ch;
         for(int i=0; i < str.length(); i++){
@@ -621,6 +677,17 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    //user creation:
+        /* email: string
+           password:
+                - 8 characters
+                - one captial letter
+                - one lowercase letter
+                - one number
+           password confirm:
+                - must match password
+           anything invalid will clear text field, give invalid popup
+         */
     public void registerUser(View view) { //(String email, String password) {
         String email = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
         String password = ((EditText)findViewById(R.id.password)).getText().toString();
@@ -702,10 +769,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //change screen to forgot password when clicked
     public void forgotPassword (View view){
         setContentView(R.layout.forgot_password);
     }
 
+    //reset password through the firebase backend
+    //reset email generated and sent
     public void resetPassword(View view){
         FirebaseAuth auth = FirebaseAuth.getInstance();
         String emailAddress = ((EditText)findViewById(R.id.emailAddress)).getText().toString();
@@ -725,6 +795,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    //sign user out via mauth
     public void signOut (View view){
         mAuth.signOut();
         setContentView(R.layout.login_screen);
